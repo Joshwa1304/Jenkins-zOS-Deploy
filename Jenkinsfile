@@ -5,12 +5,17 @@ pipeline {
         DEPLOY_SERVER = 'DevOps-Deploy'
         COMPONENT     = 'zOS-Test-Comp'
         ZOS_VERSION   = 'v1.3'
+        SHIPLIST_FILE = '/zbuzagent/shiplist/batchshiplist.xml'
     }
 
     stages {
         stage('Trigger zOS Version Import') {
             steps {
-                echo "Creating version ${ZOS_VERSION} in ${COMPONENT}"
+                echo 'Starting zOS component version import'
+                echo "Deploy Server : ${DEPLOY_SERVER}"
+                echo "Component     : ${COMPONENT}"
+                echo "Version       : ${ZOS_VERSION}"
+                echo "Shiplist      : ${SHIPLIST_FILE}"
 
                 step([
                     $class: 'UCDeployPublisher',
@@ -27,7 +32,10 @@ pipeline {
 
                             pullSourceType: 'zOS File',
 
-                            pullProperties: "zOSFileImportProperties/versionName=${ZOS_VERSION}",
+                            pullProperties: """version=${ZOS_VERSION}
+shiplistContent=
+shiplitFilePath=${SHIPLIST_FILE}
+packageAfterTimestamp=""",
 
                             pullIncremental: false
                         ]
@@ -39,11 +47,14 @@ pipeline {
 
     post {
         success {
-            echo "Version ${ZOS_VERSION} import triggered successfully."
+            echo 'Jenkins successfully sent the import request to HCL Deploy.'
+            echo "Requested component version: ${ZOS_VERSION}"
+            echo 'Check the HCL Deploy Version Import History for the actual import result.'
         }
 
         failure {
-            echo "Failed to create version ${ZOS_VERSION}."
+            echo "Failed to trigger zOS version ${ZOS_VERSION} import."
+            echo 'Check the Jenkins Console Output.'
         }
     }
 }
