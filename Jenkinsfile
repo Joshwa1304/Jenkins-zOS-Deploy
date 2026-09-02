@@ -2,43 +2,50 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_SERVER = 'DevOps-Deploy'
-        COMPONENT     = 'zOS-Test-Comp'
-        ZOS_VERSION   = 'v1.3'
-        SHIPLIST_FILE = '/zbuzagent/shiplist/batchshiplist.xml'
+        DEPLOY_SERVER      = 'DevOps-Deploy'
+        APPLICATION        = 'zOS-Test-App'
+        ENVIRONMENT_NAME   = 'zOS-Test-Env'
+        APPLICATION_PROCESS = 'zOS-App-Processes'
+        COMPONENT          = 'zOS-Test-Comp'
+        ZOS_VERSION        = 'v1.3'
     }
 
     stages {
-        stage('Trigger zOS Version Import') {
+        stage('Display Deployment Details') {
             steps {
-                echo 'Starting zOS component version import'
-                echo "Deploy Server : ${DEPLOY_SERVER}"
-                echo "Component     : ${COMPONENT}"
-                echo "Version       : ${ZOS_VERSION}"
-                echo "Shiplist      : ${SHIPLIST_FILE}"
+                echo 'Starting zOS deployment'
+                echo "Application : ${APPLICATION}"
+                echo "Environment : ${ENVIRONMENT_NAME}"
+                echo "Process     : ${APPLICATION_PROCESS}"
+                echo "Component   : ${COMPONENT}"
+                echo "Version     : ${ZOS_VERSION}"
+            }
+        }
 
+        stage('Deploy to zOS') {
+            steps {
                 step([
                     $class: 'UCDeployPublisher',
 
                     siteName: "${DEPLOY_SERVER}",
 
-                    component: [
-                        $class: 'com.urbancode.jenkins.plugins.ucdeploy.VersionHelper$VersionBlock',
+                    deploy: [
+                        $class: 'com.urbancode.jenkins.plugins.ucdeploy.DeployHelper$DeployBlock',
 
-                        componentName: "${COMPONENT}",
+                        createSnapshot: [
+                            deployWithSnapshot: false,
+                            snapshotName: ''
+                        ],
 
-                        delivery: [
-                            $class: 'com.urbancode.jenkins.plugins.ucdeploy.DeliveryHelper$Pull',
+                        deployApp: "${APPLICATION}",
 
-                            pullSourceType: 'zOS File',
+                        deployEnv: "${ENVIRONMENT_NAME}",
 
-                            pullProperties: """version=${ZOS_VERSION}
-shiplistContent=
-shiplitFilePath=${SHIPLIST_FILE}
-packageAfterTimestamp=""",
+                        deployProc: "${APPLICATION_PROCESS}",
 
-                            pullIncremental: false
-                        ]
+                        deployVersions: "${COMPONENT}:${ZOS_VERSION}",
+
+                        deployOnlyChanged: false
                     ]
                 ])
             }
@@ -47,14 +54,15 @@ packageAfterTimestamp=""",
 
     post {
         success {
-            echo 'Jenkins successfully sent the import request to HCL Deploy.'
-            echo "Requested component version: ${ZOS_VERSION}"
-            echo 'Check the HCL Deploy Version Import History for the actual import result.'
+            echo 'Jenkins successfully submitted the zOS deployment request.'
+            echo "Requested deployment: ${COMPONENT}:${ZOS_VERSION}"
+            echo "Target environment: ${ENVIRONMENT_NAME}"
+            echo 'Check HCL Deploy Application History for the actual deployment result.'
         }
 
         failure {
-            echo "Failed to trigger zOS version ${ZOS_VERSION} import."
-            echo 'Check the Jenkins Console Output.'
+            echo 'Failed to submit the zOS deployment request.'
+            echo 'Check Jenkins Console Output.'
         }
     }
 }
