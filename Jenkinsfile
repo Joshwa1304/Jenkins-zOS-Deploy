@@ -7,7 +7,7 @@ pipeline {
         ENVIRONMENT_NAME   = 'zOS-Test-Env'
         APPLICATION_PROCESS = 'zOS-App-Processes'
         COMPONENT          = 'zOS-Test-Comp'
-        ZOS_VERSION        = 'v1.3'
+        ZOS_VERSION        = 'v1.4'
     }
 
     stages {
