@@ -4,7 +4,7 @@ pipeline {
     environment {
         DEPLOY_SERVER = 'DevOps-Deploy'
         COMPONENT     = 'zOS-Test-Comp'
-        ZOS_VERSION   = 'v1.3'
+        ZOS_VERSION   = 'v1.4'
         SHIPLIST_FILE = '/zbuzagent/shiplist/batchshiplist.xml'
     }
 
